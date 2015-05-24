@@ -23,88 +23,101 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-import vg.civcraft.mc.namelayer.NameAPI;
-import vg.civcraft.mc.namelayer.config.NameConfigListener;
-import vg.civcraft.mc.namelayer.config.NameConfigManager;
-import vg.civcraft.mc.namelayer.config.annotations.NameConfig;
-import vg.civcraft.mc.namelayer.config.annotations.NameConfigs;
-import vg.civcraft.mc.namelayer.config.annotations.NameConfigType;
+import vg.civcraft.mc.civmodcore.ACivMod;
+import vg.civcraft.mc.civmodcore.annotations.CivConfig;
+import vg.civcraft.mc.civmodcore.annotations.CivConfigs;
+import vg.civcraft.mc.civmodcore.annotations.CivConfigType;
 
 import com.valadian.bergecraft.bergeypvp.WeaponTimer;
-public class BergeyPvp extends JavaPlugin implements Listener, NameConfigListener{
-
-	private NameConfigManager config_;
-    protected final Logger log_ = getLogger();
-	public void onEnable(){
-		getServer().getPluginManager().registerEvents(this, this);
-		config_ = NameAPI.getNameConfigManager();
-		config_.registerListener(this, this);
-	}
+public class BergeyPvp extends ACivMod{
+	@Override
+	@CivConfig(name="debug_messages", def="false", type = CivConfigType.Bool)
+	protected String getPluginName() {
+        return "BergeyPVP";
+    }
+	protected final Logger log_ = Logger.getLogger(getPluginName());
 
     HashMap<Player,WeaponTimer> cooldowns = new HashMap<Player,WeaponTimer>();
+
+    private void Log(String message, Level level, Player player){
+		  log_.log(level, message);
+		  if(player!=null && config_!=null && config_.get("debug_messages").getBool()){
+			  player.sendMessage(message);
+		  }
+    }
+    private void Log(String message){
+    	Log(message, Level.INFO,null);
+    }
+    private void Log(String message, Player player){
+    	Log(message, Level.INFO,player);
+    }
     
-    @NameConfigs({
-	    @NameConfig(name="bergey_pvp_weapons", def="true", type = NameConfigType.Bool),
-	    @NameConfig(name="bergey_pvp_weapon_cooldown", def="3000",type=NameConfigType.Int),
-	    @NameConfig(name="nerf_sharpness", def="true", type = NameConfigType.Bool),
-	    @NameConfig(name="sharpness_damage_per_level", type=NameConfigType.Double, def="0.66"),
-	    @NameConfig(name="nerf_strength", def="true", type = NameConfigType.Bool),
-    	@NameConfig(name="strength_multiplier", type=NameConfigType.Double, def="1.5")
+    @CivConfigs({
+	    @CivConfig(name="bergey_pvp_weapons", def="false", type = CivConfigType.Bool),
+	    @CivConfig(name="bergey_pvp_weapon_cooldown", def="3000",type=CivConfigType.Int),
+	    @CivConfig(name="nerf_sharpness", def="true", type = CivConfigType.Bool),
+	    @CivConfig(name="sharpness_damage_per_level", type=CivConfigType.Double, def="0.66"),
+	    @CivConfig(name="nerf_strength", def="true", type = CivConfigType.Bool),
+    	@CivConfig(name="strength_multiplier", type=CivConfigType.Double, def="1.5")
     })
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onPlayerDamage(EntityDamageByEntityEvent event) {
     	if(event.getDamager() instanceof Player)
     	{
-        	Player attacker = (Player) event.getDamager();
-        	ItemStack stack = attacker.getItemInHand();
-        	stack.getDurability();
-        	long now = System.currentTimeMillis();
-    		if(config_.get(this, "bergey_pvp_weapons").getBool())
-    		{
-        		int cooldown = config_.get(this, "bergey_pvp_weapon_cooldown").getInt();
-    	    	if(cooldowns.containsKey(attacker) && !cooldowns.get(attacker).cancelled)
-    	    	{
-    				event.setCancelled(true);
-    				//cooldowns.get(attacker).resetTimer();
-    				//attacker.sendMessage("[Bergey Pvp] Attacking too fast");
-    				return;
-        		}
-    	    	else
-    	    	{
-        	    	//log_.log(Level.INFO, "Scheduling Cooldown!");
-        			//WeaponTimer timer = new WeaponTimer(attacker, stack, now, cooldown);
-        			//timer.runTaskTimer(this, 0, 20/5);
-        			//cooldowns.put(attacker, timer);
-        			//Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(this, new WeaponTimer(attacker, stack, now, cooldown), 0, 20/5);
-    	    	}
-        	}
+        	// One day may look into Cooldown code.
+//        	Player attacker = (Player) event.getDamager();
+//        	ItemStack stack = attacker.getItemInHand();
+//        	stack.getDurability();
+//        	long now = System.currentTimeMillis();
+//    		if(config_.get("bergey_pvp_weapons").getBool())
+//    		{
+//        		int cooldown = config_.get("bergey_pvp_weapon_cooldown").getInt();
+//    	    	if(cooldowns.containsKey(attacker) && !cooldowns.get(attacker).cancelled)
+//    	    	{
+//    				event.setCancelled(true);
+//    				//cooldowns.get(attacker).resetTimer();
+//    				//attacker.sendMessage("[Bergey Pvp] Attacking too fast");
+//    				return;
+//        		}
+//    	    	else
+//    	    	{
+//        	    	//log_.log(Level.INFO, "Scheduling Cooldown!");
+//        			//WeaponTimer timer = new WeaponTimer(attacker, stack, now, cooldown);
+//        			//timer.runTaskTimer(this, 0, 20/5);
+//        			//cooldowns.put(attacker, timer);
+//        			//Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(this, new WeaponTimer(attacker, stack, now, cooldown), 0, 20/5);
+//    	    	}
+//        	}
 
-            if (config_.get(this, "nerf_sharpness").getBool()) {
-                if (!(event.getDamager() instanceof Player)) {
-                    return;
-                  }
-                  Player player = (Player)event.getDamager();
-                  ItemStack item = player.getItemInHand();
-                  //Apply Strength Nerf
-                  final double strengthMultiplier = config_.get(this, "strength_multiplier").getDouble();
-                  if (player.hasPotionEffect(PotionEffectType.INCREASE_DAMAGE)) {
-                    for (PotionEffect effect : player.getActivePotionEffects()) {
-                      if (effect.getType().equals(PotionEffectType.INCREASE_DAMAGE)) {
-                        final int potionLevel = effect.getAmplifier() + 1;
-                        final double unbuffedDamage = event.getDamage() / (1.3 * potionLevel + 1);
-                        final double newDamage = unbuffedDamage + (potionLevel * strengthMultiplier);
-                        event.setDamage(newDamage);
-                        break;
-                      }
-                    }
-                  }
+            if (!(event.getDamager() instanceof Player)) {
+                return;
+            }
+            Player player = (Player)event.getDamager();
+            ItemStack item = player.getItemInHand();
+            
+            if (config_.get("nerf_strength").getBool()) {
+	            //Apply Strength Nerf
+	            final double strengthMultiplier = config_.get("strength_multiplier").getDouble();
+	            if (player.hasPotionEffect(PotionEffectType.INCREASE_DAMAGE)) {
+	              for (PotionEffect effect : player.getActivePotionEffects()) {
+	                if (effect.getType().equals(PotionEffectType.INCREASE_DAMAGE)) {
+	                  final int potionLevel = effect.getAmplifier() + 1;
+	                  final double unbuffedDamage = event.getDamage() / (1.3 * potionLevel + 1);
+	                  final double newDamage = unbuffedDamage + (potionLevel * strengthMultiplier);
+	                  Log("STR NERF: Reduce dam from: "+event.getDamage()+" to: "+newDamage);
+	                  event.setDamage(newDamage);
+	                  break;
+	                }
+	              }
+	            }
+            }
+            if (config_.get("nerf_sharpness").getBool()) {
                   //Apply Sharp Nerf
                   int sharpness = item.getEnchantmentLevel(Enchantment.DAMAGE_ALL);
-                  final double sharpnessOffset = config_.get(this, "sharpness_damage_per_level").getDouble();
+                  final double sharpnessOffset = config_.get("sharpness_damage_per_level").getDouble();
                   if(sharpness>0){
 	                  //final double unbuffedDamage = event.getDamage() / potionScale;
 	                  final double newDamage = event.getDamage() - 1.25 * sharpness + sharpnessOffset * sharpness;
@@ -115,16 +128,16 @@ public class BergeyPvp extends JavaPlugin implements Listener, NameConfigListene
             }
     	}
     }
-    @NameConfigs ({
-    	@NameConfig(name="bergey_armor", def="true", type = NameConfigType.Bool),
-    	@NameConfig(name="bergey_armor_50_perc_mit", def="10",type=NameConfigType.Int),
-    	@NameConfig(name="bergey_prot", def="true", type = NameConfigType.Bool),
-    	@NameConfig(name="bergey_prot_50_perc_mit", def="7",type=NameConfigType.Int),
-    	@NameConfig(name="bergey_prot_scale", def="0.33",type=NameConfigType.Double),
+    @CivConfigs ({
+    	@CivConfig(name="bergey_armor", def="true", type = CivConfigType.Bool),
+    	@CivConfig(name="bergey_armor_50_perc_mit", def="10",type=CivConfigType.Int),
+    	@CivConfig(name="bergey_prot", def="true", type = CivConfigType.Bool),
+    	@CivConfig(name="bergey_prot_50_perc_mit", def="7",type=CivConfigType.Int),
+    	@CivConfig(name="bergey_prot_scale", def="0.33",type=CivConfigType.Double),
     })
     @EventHandler(priority = EventPriority.LOWEST) // ignoreCancelled=false
     public void onPlayerTakeDamage(EntityDamageEvent event) {
-      if (!config_.get(this, "bergey_armor").getBool()) {
+      if (!config_.get("bergey_armor").getBool()) {
           return;
       }
       double damage = event.getDamage();
@@ -158,10 +171,10 @@ public class BergeyPvp extends JavaPlugin implements Listener, NameConfigListene
       
       double originalDamage = damage / vanilla_damage_taken_ratio;
       
-      double bergey_reduction = defense / (defense + config_.get(this, "bergey_armor_50_perc_mit").getInt());
+      double bergey_reduction = defense / (defense + config_.get("bergey_armor_50_perc_mit").getInt());
       double bergey_prot_reduction = 0;
       if(factorProt){
-    	  bergey_prot_reduction = bergey_epf / (bergey_epf + config_.get(this, "bergey_prot_50_perc_mit").getInt()) * config_.get(this, "bergey_prot_scale").getDouble();
+    	  bergey_prot_reduction = bergey_epf / (bergey_epf + config_.get("bergey_prot_50_perc_mit").getInt()) * config_.get("bergey_prot_scale").getDouble();
       }
       double bergey_damage_taken_ratio = (1 - bergey_reduction) * (1 - bergey_prot_reduction);
       
@@ -277,26 +290,26 @@ public class BergeyPvp extends JavaPlugin implements Listener, NameConfigListene
     	}
     }
 
-    @NameConfigs ({
-    	@NameConfig(name="bergey_health", def="true", type = NameConfigType.Bool),
-    	@NameConfig(name="bergey_base_health", def="20.0",type=NameConfigType.Double),
-    	@NameConfig(name="bergey_max_bonus_health", def="20.0",type=NameConfigType.Double),
-    	@NameConfig(name="bergey_health_bonus_50_perc_durability", def="850",type=NameConfigType.Double)
+    @CivConfigs ({
+    	@CivConfig(name="bergey_health", def="true", type = CivConfigType.Bool),
+    	@CivConfig(name="bergey_base_health", def="20.0",type=CivConfigType.Double),
+    	@CivConfig(name="bergey_max_bonus_health", def="20.0",type=CivConfigType.Double),
+    	@CivConfig(name="bergey_health_bonus_50_perc_durability", def="850",type=CivConfigType.Double)
     })
 	public void setMaxHealth(Player player){
 
-        if (!config_.get(this, "bergey_health").getBool()) {
+        if (!config_.get("bergey_health").getBool()) {
           return;
         }
-		double maxHealth = config_.get(this, "bergey_base_health").getDouble();
+		double maxHealth = config_.get("bergey_base_health").getDouble();
 		
 		double durability = 0;
  	    for (ItemStack armor : player.getInventory().getArmorContents()) {
  	    	durability += armor.getType().getMaxDurability();
  	    }
  	    
- 	   maxHealth += config_.get(this, "bergey_max_bonus_health").getDouble() *
- 	    		durability / (durability + config_.get(this, "bergey_health_bonus_50_perc_durability").getDouble());
+ 	   maxHealth += config_.get("bergey_max_bonus_health").getDouble() *
+ 	    		durability / (durability + config_.get("bergey_health_bonus_50_perc_durability").getDouble());
  	    if(maxHealth != ((Damageable) player).getMaxHealth()){
 			log_.log(Level.INFO, "Setting Player: "+player.getName()+" to "+maxHealth+" health");
 			if(((Damageable)player).getHealth()>maxHealth)
@@ -319,12 +332,12 @@ public class BergeyPvp extends JavaPlugin implements Listener, NameConfigListene
  	    }
 	}
     
-    @NameConfig(name="ender_pearl_teleportation", def="false", type = NameConfigType.Bool)
+    @CivConfig(name="ender_pearl_teleportation", def="true", type = CivConfigType.Bool)
       @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
       public void onTeleport(PlayerTeleportEvent event) {
         TeleportCause cause = event.getCause();
         if (cause.equals(TeleportCause.ENDER_PEARL) && 
-        	!config_.get(this, "ender_pearl_teleportation").getBool()) {
+        	!config_.get("ender_pearl_teleportation").getBool()) {
         	event.setCancelled(true);
         	event.getPlayer().sendMessage("Ender pearls are disabled in Bergecraft PVP mode.");
         }

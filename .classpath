@@ -5,6 +5,6 @@
 	<classpathentry kind="lib" path="/BergecraftServerConfig/1.7.10/bergmodcore.jar"/>
 	<classpathentry exported="true" kind="lib" path="/BergecraftServerConfig/1.7.10/craftbukkit.jar"/>
 	<classpathentry exported="true" kind="lib" path="/BergecraftServerConfig/1.7.10/gimmickapi.jar"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/BergModCore"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/CivModCore"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
