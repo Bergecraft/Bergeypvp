@@ -2,9 +2,7 @@
 <classpath>
 	<classpathentry excluding="main/java/" kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
-	<classpathentry kind="lib" path="/BergecraftServerConfig/1.7.10/bergmodcore.jar"/>
-	<classpathentry exported="true" kind="lib" path="/BergecraftServerConfig/1.7.10/craftbukkit.jar"/>
-	<classpathentry exported="true" kind="lib" path="/BergecraftServerConfig/1.7.10/gimmickapi.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/CivModCore"/>
+	<classpathentry kind="lib" path="/BergecraftServerConfig/1.8.6/craftbukkit-1.8.6.jar"/>
+	<classpathentry kind="lib" path="/BergecraftServerConfig/1.8.6/civmodcore.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -34,7 +34,6 @@ import vg.civcraft.mc.civmodcore.annotations.CivConfigType;
 import com.valadian.bergecraft.bergeypvp.WeaponTimer;
 public class BergeyPvp extends ACivMod{
 	@Override
-	@CivConfig(name="debug_messages", def="false", type = CivConfigType.Bool)
 	protected String getPluginName() {
         return "BergeyPVP";
     }
@@ -42,17 +41,23 @@ public class BergeyPvp extends ACivMod{
 
     HashMap<Player,WeaponTimer> cooldowns = new HashMap<Player,WeaponTimer>();
 
-    private void Log(String message, Level level, Player player){
+    DecimalFormat df = new DecimalFormat("#.00"); 
+	@CivConfig(name="debug_messages", def="false", type = CivConfigType.Bool)
+    public void Log(Level level, String message, Player... players){
 		  log_.log(level, message);
-		  if(player!=null && config_!=null && config_.get("debug_messages").getBool()){
-			  player.sendMessage(message);
+		  if(players!=null){
+			  for(Player player: players){
+				  if(player!=null && config_!=null && config_.get("debug_messages").getBool()){
+					  player.sendMessage(message);
+				  }
+			  }
 		  }
     }
-    private void Log(String message){
-    	Log(message, Level.INFO,null);
-    }
-    private void Log(String message, Player player){
-    	Log(message, Level.INFO,player);
+//    private void Log(String message){
+//    	Log(message, Level.INFO,null);
+//    }
+    public void Log(String message, Player... players){
+    	Log(Level.INFO,message, players);
     }
     
     @CivConfigs({
@@ -97,7 +102,11 @@ public class BergeyPvp extends ACivMod{
             }
             Player player = (Player)event.getDamager();
             ItemStack item = player.getItemInHand();
-            
+            Entity entity = event.getEntity();
+            Player defender = null;
+            if (entity instanceof Player) {
+               defender = (Player)entity;
+            }
             if (config_.get("nerf_strength").getBool()) {
 	            //Apply Strength Nerf
 	            final double strengthMultiplier = config_.get("strength_multiplier").getDouble();
@@ -107,7 +116,7 @@ public class BergeyPvp extends ACivMod{
 	                  final int potionLevel = effect.getAmplifier() + 1;
 	                  final double unbuffedDamage = event.getDamage() / (1.3 * potionLevel + 1);
 	                  final double newDamage = unbuffedDamage + (potionLevel * strengthMultiplier);
-	                  Log("STR NERF: Reduce dam from: "+event.getDamage()+" to: "+newDamage);
+	                  Log("STR NERF: Pre STR"+potionLevel+": "+df.format(unbuffedDamage)+". Reduce dam from: "+df.format(event.getDamage())+" to: "+df.format(newDamage), player, defender);
 	                  event.setDamage(newDamage);
 	                  break;
 	                }
@@ -119,10 +128,12 @@ public class BergeyPvp extends ACivMod{
                   int sharpness = item.getEnchantmentLevel(Enchantment.DAMAGE_ALL);
                   final double sharpnessOffset = config_.get("sharpness_damage_per_level").getDouble();
                   if(sharpness>0){
+                	  final double unbuffedDamage = event.getDamage() - 1.25 * sharpness;
 	                  //final double unbuffedDamage = event.getDamage() / potionScale;
-	                  final double newDamage = event.getDamage() - 1.25 * sharpness + sharpnessOffset * sharpness;
+	                  final double newDamage = unbuffedDamage + sharpnessOffset * sharpness;
 	                  //final double newDamage = fixedUnbuffedDamage * potionScale;
-	          		  log_.log(Level.INFO, "Reducing Sharpness damage from: "+event.getDamage()+" to: "+newDamage);
+	                  Log("STR NERF: Pre Sharp"+sharpness+": "+df.format(unbuffedDamage)+". Reduce dam from: "+df.format(event.getDamage())+" to: "+df.format(newDamage), player, defender);
+	          		  //log_.log(Level.INFO, "Reducing Sharpness damage from: "+event.getDamage()+" to: "+newDamage);
 	                  event.setDamage(newDamage);
                   }
             }
@@ -133,7 +144,8 @@ public class BergeyPvp extends ACivMod{
     	@CivConfig(name="bergey_armor_50_perc_mit", def="10",type=CivConfigType.Int),
     	@CivConfig(name="bergey_prot", def="true", type = CivConfigType.Bool),
     	@CivConfig(name="bergey_prot_50_perc_mit", def="7",type=CivConfigType.Int),
-    	@CivConfig(name="bergey_prot_scale", def="0.33",type=CivConfigType.Double),
+    	@CivConfig(name="bergey_prot_scale", def="0.5",type=CivConfigType.Double),
+    	@CivConfig(name="bergey_linear_prot_epf", def="false",type=CivConfigType.Bool),
     })
     @EventHandler(priority = EventPriority.LOWEST) // ignoreCancelled=false
     public void onPlayerTakeDamage(EntityDamageEvent event) {
@@ -157,7 +169,6 @@ public class BergeyPvp extends ACivMod{
         return;
       }
       Player defender = (Player)entity;
-  	  
       double defense = getDefense(defender);
       double epf = getAverageEPF(defender);
       double bergey_epf = getAverageBergeyEPF(defender);
@@ -181,14 +192,14 @@ public class BergeyPvp extends ACivMod{
       double newDamage = originalDamage * bergey_damage_taken_ratio;
       DecimalFormat df = new DecimalFormat("#.##");
       if(factorProt) {
-	      log_.log(Level.INFO, "[Vanilla] Armor: "+df.format(vanilla_reduction)+", Enchant: "+df.format(vanilla_protection_reduction)+"\n"+
-	"                              [Bergey ] Armor: "+df.format(bergey_reduction)+", Enchant: "+df.format(bergey_prot_reduction)+"\n"+
-	"                                        Damage Before: "+df.format(damage)+ " Damage After: "+df.format(newDamage));
+	      Log(Level.INFO, "[Vanilla] Armor: "+df.format(vanilla_reduction)+", Enchant: "+df.format(vanilla_protection_reduction)+"\n"+
+	"[Bergey ] Armor: "+df.format(bergey_reduction)+", Enchant: "+df.format(bergey_prot_reduction)+"\n"+
+	"Damage Before: "+df.format(damage)+ " Damage After: "+df.format(newDamage),defender);
       }
       else {
-    	  log_.log(Level.INFO, "[Vanilla] Armor: "+df.format(vanilla_reduction)+", \n"+
-    "                              [Bergey ] Armor: "+df.format(bergey_reduction)+"\n"+
-	"                                        Damage Before: "+df.format(damage)+ " Damage After: "+df.format(newDamage));
+    	  Log(Level.INFO, "[Vanilla] Armor: "+df.format(vanilla_reduction)+", \n"+
+    "[Bergey ] Armor: "+df.format(bergey_reduction)+"\n"+
+	"Damage Before: "+df.format(damage)+ " Damage After: "+df.format(newDamage),defender);
       }
       event.setDamage(newDamage);
     }
@@ -262,6 +273,9 @@ public class BergeyPvp extends ACivMod{
     
     private double getAverageBergeyEPF(Player player)
     {
+    	if(!config_.get("bergey_linear_prot_epf").getBool()){
+    		return getAverageEPF(player);
+    	}
   	   PlayerInventory inv = player.getInventory();
   	   
   	   int epf = 0;
@@ -293,7 +307,7 @@ public class BergeyPvp extends ACivMod{
     @CivConfigs ({
     	@CivConfig(name="bergey_health", def="true", type = CivConfigType.Bool),
     	@CivConfig(name="bergey_base_health", def="20.0",type=CivConfigType.Double),
-    	@CivConfig(name="bergey_max_bonus_health", def="20.0",type=CivConfigType.Double),
+    	@CivConfig(name="bergey_max_bonus_health", def="29.0",type=CivConfigType.Double),
     	@CivConfig(name="bergey_health_bonus_50_perc_durability", def="850",type=CivConfigType.Double)
     })
 	public void setMaxHealth(Player player){
