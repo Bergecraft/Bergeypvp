@@ -47,7 +47,7 @@ public class BergeyPvp extends ACivMod{
 		  log_.log(level, message);
 		  if(players!=null){
 			  for(Player player: players){
-				  if(player!=null && config_!=null && config_.get("debug_messages").getBool()){
+				  if(player!=null && GetConfig()!=null && GetConfig().get("debug_messages").getBool()){
 					  player.sendMessage(message);
 				  }
 			  }
@@ -107,9 +107,9 @@ public class BergeyPvp extends ACivMod{
             if (entity instanceof Player) {
                defender = (Player)entity;
             }
-            if (config_.get("nerf_strength").getBool()) {
+            if (GetConfig().get("nerf_strength").getBool()) {
 	            //Apply Strength Nerf
-	            final double strengthMultiplier = config_.get("strength_multiplier").getDouble();
+	            final double strengthMultiplier = GetConfig().get("strength_multiplier").getDouble();
 	            if (player.hasPotionEffect(PotionEffectType.INCREASE_DAMAGE)) {
 	              for (PotionEffect effect : player.getActivePotionEffects()) {
 	                if (effect.getType().equals(PotionEffectType.INCREASE_DAMAGE)) {
@@ -123,10 +123,10 @@ public class BergeyPvp extends ACivMod{
 	              }
 	            }
             }
-            if (config_.get("nerf_sharpness").getBool()) {
+            if (GetConfig().get("nerf_sharpness").getBool()) {
                   //Apply Sharp Nerf
                   int sharpness = item.getEnchantmentLevel(Enchantment.DAMAGE_ALL);
-                  final double sharpnessOffset = config_.get("sharpness_damage_per_level").getDouble();
+                  final double sharpnessOffset = GetConfig().get("sharpness_damage_per_level").getDouble();
                   if(sharpness>0){
                 	  final double unbuffedDamage = event.getDamage() - 1.25 * sharpness;
 	                  //final double unbuffedDamage = event.getDamage() / potionScale;
@@ -149,7 +149,7 @@ public class BergeyPvp extends ACivMod{
     })
     @EventHandler(priority = EventPriority.LOWEST) // ignoreCancelled=false
     public void onPlayerTakeDamage(EntityDamageEvent event) {
-      if (!config_.get("bergey_armor").getBool()) {
+      if (!GetConfig().get("bergey_armor").getBool()) {
           return;
       }
       double damage = event.getDamage();
@@ -182,10 +182,10 @@ public class BergeyPvp extends ACivMod{
       
       double originalDamage = damage / vanilla_damage_taken_ratio;
       
-      double bergey_reduction = defense / (defense + config_.get("bergey_armor_50_perc_mit").getInt());
+      double bergey_reduction = defense / (defense + GetConfig().get("bergey_armor_50_perc_mit").getInt());
       double bergey_prot_reduction = 0;
       if(factorProt){
-    	  bergey_prot_reduction = bergey_epf / (bergey_epf + config_.get("bergey_prot_50_perc_mit").getInt()) * config_.get("bergey_prot_scale").getDouble();
+    	  bergey_prot_reduction = bergey_epf / (bergey_epf + GetConfig().get("bergey_prot_50_perc_mit").getInt()) * GetConfig().get("bergey_prot_scale").getDouble();
       }
       double bergey_damage_taken_ratio = (1 - bergey_reduction) * (1 - bergey_prot_reduction);
       
@@ -273,7 +273,7 @@ public class BergeyPvp extends ACivMod{
     
     private double getAverageBergeyEPF(Player player)
     {
-    	if(!config_.get("bergey_linear_prot_epf").getBool()){
+    	if(!GetConfig().get("bergey_linear_prot_epf").getBool()){
     		return getAverageEPF(player);
     	}
   	   PlayerInventory inv = player.getInventory();
@@ -312,18 +312,18 @@ public class BergeyPvp extends ACivMod{
     })
 	public void setMaxHealth(Player player){
 
-        if (!config_.get("bergey_health").getBool()) {
+        if (!GetConfig().get("bergey_health").getBool()) {
           return;
         }
-		double maxHealth = config_.get("bergey_base_health").getDouble();
+		double maxHealth = GetConfig().get("bergey_base_health").getDouble();
 		
 		double durability = 0;
  	    for (ItemStack armor : player.getInventory().getArmorContents()) {
  	    	durability += armor.getType().getMaxDurability();
  	    }
  	    
- 	   maxHealth += config_.get("bergey_max_bonus_health").getDouble() *
- 	    		durability / (durability + config_.get("bergey_health_bonus_50_perc_durability").getDouble());
+ 	   maxHealth += GetConfig().get("bergey_max_bonus_health").getDouble() *
+ 	    		durability / (durability + GetConfig().get("bergey_health_bonus_50_perc_durability").getDouble());
  	    if(maxHealth != ((Damageable) player).getMaxHealth()){
 			log_.log(Level.INFO, "Setting Player: "+player.getName()+" to "+maxHealth+" health");
 			if(((Damageable)player).getHealth()>maxHealth)
@@ -351,7 +351,7 @@ public class BergeyPvp extends ACivMod{
       public void onTeleport(PlayerTeleportEvent event) {
         TeleportCause cause = event.getCause();
         if (cause.equals(TeleportCause.ENDER_PEARL) && 
-        	!config_.get("ender_pearl_teleportation").getBool()) {
+        	!GetConfig().get("ender_pearl_teleportation").getBool()) {
         	event.setCancelled(true);
         	event.getPlayer().sendMessage("Ender pearls are disabled in Bergecraft PVP mode.");
         }
