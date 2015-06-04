@@ -193,13 +193,17 @@ public class BergeyPvp extends ACivMod{
       DecimalFormat df = new DecimalFormat("#.##");
       if(factorProt) {
 	      Log(Level.INFO, "[Vanilla] Armor: "+df.format(vanilla_reduction)+", Enchant: "+df.format(vanilla_protection_reduction)+"\n"+
-	"[Bergey ] Armor: "+df.format(bergey_reduction)+", Enchant: "+df.format(bergey_prot_reduction)+"\n"+
-	"Damage Before: "+df.format(damage)+ " Damage After: "+df.format(newDamage),defender);
+		  		  		  "[Vanilla] Damage: "+df.format(damage*(1-vanilla_reduction)*(1-vanilla_protection_reduction))+", \n"+
+	    		  		  "[Bergey ] Armor: "+df.format(bergey_reduction)+", Enchant: "+df.format(bergey_prot_reduction)+"\n"+
+		  		  		  "[Bergey ] Damage: "+df.format(damage*(1-bergey_reduction)*(1-bergey_prot_reduction))+", \n"+
+	    		  		  "Damage Before: "+df.format(damage)+ " Damage After: "+df.format(newDamage),defender);
       }
       else {
     	  Log(Level.INFO, "[Vanilla] Armor: "+df.format(vanilla_reduction)+", \n"+
-    "[Bergey ] Armor: "+df.format(bergey_reduction)+"\n"+
-	"Damage Before: "+df.format(damage)+ " Damage After: "+df.format(newDamage),defender);
+    			  		  "[Vanilla] Damage: "+df.format(damage*(1-vanilla_reduction))+", \n"+
+    			  		  "[Bergey ] Armor: "+df.format(bergey_reduction)+"\n"+
+    			  		  "[Bergey ] Damage: "+df.format(damage*(1-bergey_reduction))+", \n"+
+    			  		  "Raw Damage Before: "+df.format(damage)+ " Damage After: "+df.format(newDamage),defender);
       }
       event.setDamage(newDamage);
     }
